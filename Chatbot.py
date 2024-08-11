@@ -155,3 +155,16 @@ if __name__ == '__main__':
             break
         response = chatbot_response(user_input)
         print("Bot:", response)
+
+# chatbot.py
+
+from router import route_query
+
+if __name__ == '__main__':
+    print("Welcome to the Orchestrated Chatbot! Type 'exit' to quit.")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "exit":
+            break
+        response = route_query(user_input)
+        print("Bot:", response)
