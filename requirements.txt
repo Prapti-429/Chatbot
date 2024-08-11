@@ -3,3 +3,6 @@ transformers
 faiss-cpu
 torch
 openai
+transformers
+faiss-cpu
+torch
