@@ -61,4 +61,24 @@ This project is a chatbot that uses OpenAI's GPT model, enhanced with a router t
 2. Set your OpenAI API key in `models.py`:
 ```python
 openai.api_key = 'your-openai-api-key'
+
+# Chatbot Project with Multi-Language Support, LLM Orchestration, and User Authentication
+
+This project is a chatbot that uses OpenAI's GPT model, enhanced with a router that directs user queries to specific task-based models, and supports multiple languages. It also includes user authentication for a personalized experience.
+
+## Features
+
+- **Multi-Language Support:** Detects the language of the user's input and responds in the same language.
+- **Retrieval-Augmented Generation (RAG):** Retrieve and generate responses based on a predefined knowledge base.
+- **LLM Orchestration:** Route queries to task-specific models based on the nature of the query (e.g., factual, creative, sentiment analysis).
+- **User Authentication:** Register, log in, and manage user sessions for a personalized chat experience.
+
+## Setup
+
+1. Install the necessary Python packages:
+
+2. Initialize the SQLite database:
+```python
+python -c 'from auth import init_db; init_db()'
+
 python chatbot.py
