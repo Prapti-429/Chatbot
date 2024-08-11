@@ -1,64 +1,79 @@
 # auth.py
+# auth.py
 
-import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
+import json
 import uuid
+from hashlib import sha256
 
-# Initialize SQLite database
-def init_db():
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sessions (
-            session_id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# File to store user data
+USER_DATA_FILE = 'user_data.json'
+SESSION_FILE = 'sessions.json'
+
+def load_user_data():
+    """Load user data from the file."""
+    try:
+        with open(USER_DATA_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+def save_user_data(user_data):
+    """Save user data to the file."""
+    with open(USER_DATA_FILE, 'w') as file:
+        json.dump(user_data, file)
+
+def load_sessions():
+    """Load active sessions from the file."""
+    try:
+        with open(SESSION_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+def save_sessions(sessions):
+    """Save active sessions to the file."""
+    with open(SESSION_FILE, 'w') as file:
+        json.dump(sessions, file)
+
+def hash_password(password):
+    """Hash the password using SHA-256."""
+    return sha256(password.encode()).hexdigest()
 
 def register_user(username, password):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    hashed_password = generate_password_hash(password)
-    user_id = str(uuid.uuid4())
-    try:
-        cursor.execute('INSERT INTO users (id, username, password) VALUES (?, ?, ?)', (user_id, username, hashed_password))
-        conn.commit()
-    except sqlite3.IntegrityError:
-        conn.close()
-        return False
-    conn.close()
+    """Register a new user."""
+    user_data = load_user_data()
+    
+    if username in user_data:
+        return False  # User already exists
+    
+    hashed_password = hash_password(password)
+    user_data[username] = hashed_password
+    save_user_data(user_data)
     return True
 
 def login_user(username, password):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT id, password FROM users WHERE username = ?', (username,))
-    user = cursor.fetchone()
-    conn.close()
-    if user and check_password_hash(user[1], password):
+    """Log in a user and return a session ID if successful."""
+    user_data = load_user_data()
+    hashed_password = hash_password(password)
+    
+    if username in user_data and user_data[username] == hashed_password:
         session_id = str(uuid.uuid4())
-        conn = sqlite3.connect('users.db')
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO sessions (session_id, user_id) VALUES (?, ?)', (session_id, user[0]))
-        conn.commit()
-        conn.close()
+        sessions = load_sessions()
+        sessions[session_id] = username
+        save_sessions(sessions)
         return session_id
     return None
 
 def validate_session(session_id):
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT user_id FROM sessions WHERE session_id = ?', (session_id,))
-    session = cursor.fetchone()
-    conn.close()
-    return session is not None
+    """Validate the session ID."""
+    sessions = load_sessions()
+    return sessions.get(session_id)
+
+def logout_user(session_id):
+    """Log out a user by invalidating the session ID."""
+    sessions = load_sessions()
+    if session_id in sessions:
+        del sessions[session_id]
+        save_sessions(sessions)
+        return True
+    return False
