@@ -1,0 +1,5 @@
+openai
+transformers
+faiss-cpu
+torch
+openai
