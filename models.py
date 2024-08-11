@@ -27,3 +27,4 @@ def sentiment_model(query):
         max_tokens=50
     )
     return response.choices[0].text.strip()
+openai.api_key = 'your-openai-api-key'
