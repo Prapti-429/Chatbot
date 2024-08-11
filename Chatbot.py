@@ -100,3 +100,58 @@ while True:
         break
     response = chatbot_response(user_input)
     print("Bot:", response)
+
+import openai
+from transformers import AutoTokenizer, AutoModel
+import faiss
+import numpy as np
+
+
+openai.api_key = 'your-openai-api-key'
+
+# Knowledge base - This is a simple example. You can expand this as needed.
+knowledge_base = [
+    "Python is a high-level programming language.",
+    "Flask is a micro web framework written in Python.",
+    "AWS EC2 is a service that provides scalable computing capacity in the cloud.",
+    "OpenAI's GPT models are used for generating human-like text."
+]
+
+tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+
+
+def embed_texts(texts):
+    inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
+    outputs = model(**inputs)
+    embeddings = outputs.last_hidden_state.mean(dim=1)
+    return embeddings.detach().numpy()
+
+
+embeddings = embed_texts(knowledge_base)
+index = faiss.IndexFlatL2(embeddings.shape[1])
+index.add(embeddings)
+
+def retrieve_passages(query, k=1):
+    query_embedding = embed_texts([query])
+    distances, indices = index.search(query_embedding, k)
+    return [knowledge_base[i] for i in indices[0]]
+
+def chatbot_response(user_input):
+    relevant_passages = retrieve_passages(user_input)
+    prompt = f"Based on the following information:\n{relevant_passages[0]}\n\nQ: {user_input}\nA:"
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # Use "gpt-4" if you have access
+        prompt=prompt,
+        max_tokens=150
+    )
+    return response.choices[0].text.strip()
+
+
+if __name__ == '__main__':
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "exit":
+            break
+        response = chatbot_response(user_input)
+        print("Bot:", response)
