@@ -26,3 +26,5 @@ This project is a chatbot that uses OpenAI's GPT model, augmented with a retriev
 2. Set your OpenAI API key in `chatbot.py`:
 ```python
 openai.api_key = 'your-openai-api-key'
+
+openai
