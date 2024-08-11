@@ -4,3 +4,4 @@ faiss-cpu
 torch
 deep-translator
 langdetect
+werkzeug
