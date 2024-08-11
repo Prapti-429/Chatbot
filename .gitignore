@@ -168,3 +168,7 @@ __pycache__/
 # Ignore environment variables file (if you create one)
 .env
 
+openai
+transformers
+faiss-cpu
+torch
