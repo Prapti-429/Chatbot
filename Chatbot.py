@@ -168,3 +168,33 @@ if __name__ == '__main__':
             break
         response = route_query(user_input)
         print("Bot:", response)
+
+# chatbot.py
+
+from router import route_query
+from translator import detect_language, translate_to_english, translate_to_original
+
+if __name__ == '__main__':
+    print("Welcome to the Multi-Language Orchestrated Chatbot! Type 'exit' to quit.")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "exit":
+            break
+        
+        # Detect the language of the user input
+        language = detect_language(user_input)
+        
+        # If the language is not English, translate it to English
+        if language != 'en':
+            translated_input = translate_to_english(user_input)
+        else:
+            translated_input = user_input
+        
+        # Route the query and get the response
+        response = route_query(translated_input)
+        
+        # If the original language was not English, translate the response back
+        if language != 'en':
+            response = translate_to_original(response, language)
+        
+        print("Bot:", response)
