@@ -1,6 +1,4 @@
 # auth.py
-# auth.py
-
 import json
 import uuid
 from hashlib import sha256
